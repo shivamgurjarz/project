@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Placement Cell — Dashboard</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-mark">Dronacharya TPC</div>
+      <div class="sidebar__brand-sub">Coordinator console</div>
+    </div>
+    <nav class="sidebar__nav">
+      <a class="sidebar__link is-active" href="admin-dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M9 9v11"/></svg>
+        Students &amp; drives
+      </a>
+      <a class="sidebar__link" href="analytics.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20V10M12 20V4M20 20v-7"/></svg>
+        Analytics
+      </a>
+    </nav>
+    <div class="sidebar__foot">
+      <strong id="sf-name">Placement Coordinator</strong>
+      <span>Admin access</span>
+      <button class="sidebar__logout" id="btn-logout">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1>Students &amp; drives</h1>
+      <div class="topbar__meta">Session <span>2026-27</span></div>
+    </div>
+
+    <div class="content">
+
+      <div id="no-session" class="panel" style="display:none;">
+        <div class="panel__body empty-state">You're not signed in as a coordinator. <a href="index.html">Go to sign in</a>.</div>
+      </div>
+
+      <div id="admin-view">
+
+        <div class="stat-row" id="stat-row"></div>
+
+        <!-- Students -->
+        <div class="panel">
+          <div class="panel__head">
+            <div>
+              <h2>Student records</h2>
+              <p>Add a student or filter the existing list by branch, CGPA and backlogs.</p>
+            </div>
+          </div>
+          <div class="panel__body">
+
+            <div class="field-row section-space">
+              <div class="field">
+                <label for="filter-branch">Branch</label>
+                <select id="filter-branch">
+                  <option value="">All branches</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="filter-cgpa">Minimum CGPA</label>
+                <input type="number" id="filter-cgpa" step="0.1" placeholder="e.g. 7.5">
+              </div>
+              <div class="field">
+                <label for="filter-backlogs">Max active backlogs</label>
+                <input type="number" id="filter-backlogs" min="0" placeholder="e.g. 0">
+              </div>
+              <div class="field" style="display:flex; align-items:flex-end;">
+                <button class="btn btn-secondary btn-block" id="btn-clear-filter">Clear filters</button>
+              </div>
+            </div>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>Roll no.</th><th>Name</th><th>Branch</th><th>CGPA</th><th>Backlogs</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="students-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Add student -->
+        <div class="panel">
+          <div class="panel__head">
+            <div>
+              <h2>Add a student</h2>
+              <p>Writes into the same record set used across the portal.</p>
+            </div>
+          </div>
+          <div class="panel__body">
+            <form id="student-form">
+              <div class="field-row">
+                <div class="field">
+                  <label for="s-roll">Roll number</label>
+                  <input type="text" id="s-roll" required>
+                </div>
+                <div class="field">
+                  <label for="s-name">Full name</label>
+                  <input type="text" id="s-name" required>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="s-branch">Branch</label>
+                  <select id="s-branch">
+                    <option>CSE</option><option>IT</option><option>ECE</option><option>ME</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="s-cgpa">CGPA</label>
+                  <input type="number" id="s-cgpa" step="0.01" min="0" max="10" required>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="s-backlogs">Active backlogs</label>
+                  <input type="number" id="s-backlogs" min="0" value="0">
+                </div>
+                <div class="field">
+                  <label for="s-contact">Contact email</label>
+                  <input type="email" id="s-contact">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Add student</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Companies & Drives -->
+        <div class="panel">
+          <div class="panel__head">
+            <div>
+              <h2>Companies &amp; placement drives</h2>
+              <p>Each drive carries the eligibility criteria students are matched against.</p>
+            </div>
+          </div>
+          <div class="panel__body" style="padding:0;">
+            <table>
+              <thead>
+                <tr><th>Company</th><th>Sector</th><th>Drive date</th><th>Eligibility</th><th>Package</th></tr>
+              </thead>
+              <tbody id="drives-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Placement records -->
+        <div class="panel">
+          <div class="panel__head">
+            <div>
+              <h2>Placement outcomes</h2>
+              <p>Final status recorded for each student against a drive.</p>
+            </div>
+          </div>
+          <div class="panel__body" style="padding:0;">
+            <table>
+              <thead>
+                <tr><th>Student</th><th>Company</th><th>Status</th><th>CTC (LPA)</th></tr>
+              </thead>
+              <tbody id="records-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script>
+  const role = sessionStorage.getItem('spas_role');
+  if (role !== 'admin') {
+    document.getElementById('no-session').style.display = 'block';
+    document.getElementById('admin-view').style.display = 'none';
+  } else {
+    const userLabel = sessionStorage.getItem('spas_user');
+    if (userLabel) document.getElementById('sf-name').textContent = userLabel;
+
+    function statusDot(status) {
+      if (status === 'Placed') return `<span class="status"><span class="status__dot is-placed"></span>Placed</span>`;
+      if (status === 'In Process') return `<span class="status"><span class="status__dot is-progress"></span>In process</span>`;
+      return `<span class="status"><span class="status__dot is-ineligible"></span>Not applied</span>`;
+    }
+
+    function renderStats() {
+      const students = DB.getStudents();
+      const placements = DB.getPlacementRecords();
+      const placed = placements.filter(r => r.status === 'Placed').length;
+      const avgCtc = placements.filter(r => r.ctc).reduce((a, r) => a + r.ctc, 0) / (placements.filter(r => r.ctc).length || 1);
+
+      document.getElementById('stat-row').innerHTML = `
+        <div class="stat"><div class="stat__value">${students.length}</div><div class="stat__label">Students on record</div></div>
+        <div class="stat"><div class="stat__value is-accent">${placed}</div><div class="stat__label">Students placed</div></div>
+        <div class="stat"><div class="stat__value">${DB.getCompanies().length}</div><div class="stat__label">Companies this season</div></div>
+        <div class="stat"><div class="stat__value">${avgCtc.toFixed(1)}</div><div class="stat__label">Average CTC (LPA)</div></div>
+      `;
+    }
+
+    function populateBranchFilter() {
+      const sel = document.getElementById('filter-branch');
+      const branches = [...new Set(DB.getStudents().map(s => s.branch))];
+      branches.forEach(b => {
+        const opt = document.createElement('option');
+        opt.value = b; opt.textContent = b;
+        sel.appendChild(opt);
+      });
+    }
+
+    function renderStudents() {
+      const branch = document.getElementById('filter-branch').value;
+      const minCgpa = parseFloat(document.getElementById('filter-cgpa').value);
+      const maxBacklogs = document.getElementById('filter-backlogs').value;
+
+      let students = DB.getStudents();
+      if (branch) students = students.filter(s => s.branch === branch);
+      if (!isNaN(minCgpa)) students = students.filter(s => s.cgpa >= minCgpa);
+      if (maxBacklogs !== '') students = students.filter(s => s.backlogs <= parseInt(maxBacklogs, 10));
+
+      const tbody = document.getElementById('students-table');
+      if (!students.length) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No students match these filters.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = students.map(s => {
+        const record = DB.recordFor(s.roll_no);
+        return `
+          <tr>
+            <td class="data-fig">${s.roll_no}</td>
+            <td>${s.name}</td>
+            <td>${s.branch}</td>
+            <td class="data-fig">${s.cgpa.toFixed(2)}</td>
+            <td class="data-fig">${s.backlogs}</td>
+            <td>${statusDot(record ? record.status : null)}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderDrives() {
+      const rows = DB.getDrives().map(d => {
+        const c = DB.getCompanyById(d.company_id);
+        const e = d.eligibility;
+        return `
+          <tr>
+            <td>${c.name}</td>
+            <td class="muted">${c.sector}</td>
+            <td class="data-fig">${d.date}</td>
+            <td class="muted">CGPA ≥ ${e.min_cgpa}, backlogs ≤ ${e.max_backlogs}, ${e.branches.join('/')}</td>
+            <td class="data-fig">${c.package_offered} LPA</td>
+          </tr>
+        `;
+      }).join('');
+      document.getElementById('drives-table').innerHTML = rows;
+    }
+
+    function renderRecords() {
+      const rows = DB.getPlacementRecords().map(r => {
+        const student = DB.getStudentByRoll(r.roll_no);
+        const drive = DB.getDriveById(r.drive_id);
+        const company = DB.getCompanyById(drive.company_id);
+        return `
+          <tr>
+            <td>${student.name} <span class="muted data-fig">· ${student.roll_no}</span></td>
+            <td>${company.name}</td>
+            <td>${statusDot(r.status)}</td>
+            <td class="data-fig">${r.ctc ?? '—'}</td>
+          </tr>
+        `;
+      }).join('');
+      document.getElementById('records-table').innerHTML = rows;
+    }
+
+    ['filter-branch', 'filter-cgpa', 'filter-backlogs'].forEach(id => {
+      document.getElementById(id).addEventListener('input', renderStudents);
+    });
+    document.getElementById('btn-clear-filter').addEventListener('click', () => {
+      document.getElementById('filter-branch').value = '';
+      document.getElementById('filter-cgpa').value = '';
+      document.getElementById('filter-backlogs').value = '';
+      renderStudents();
+    });
+
+    document.getElementById('student-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const roll = document.getElementById('s-roll').value.trim();
+      if (DB.getStudentByRoll(roll)) {
+        alert('A student with this roll number already exists.');
+        return;
+      }
+      DB.addStudent({
+        roll_no: roll,
+        name: document.getElementById('s-name').value.trim(),
+        branch: document.getElementById('s-branch').value,
+        cgpa: parseFloat(document.getElementById('s-cgpa').value),
+        backlogs: parseInt(document.getElementById('s-backlogs').value || '0', 10),
+        contact: document.getElementById('s-contact').value.trim(),
+      });
+      e.target.reset();
+      renderStats();
+      renderStudents();
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', () => {
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    });
+
+    renderStats();
+    populateBranchFilter();
+    renderStudents();
+    renderDrives();
+    renderRecords();
+  }
+</script>
+
+</body>
+</html>

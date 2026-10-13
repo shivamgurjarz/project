@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My Profile — Placement System</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div class="sidebar__brand">
+      <div class="sidebar__brand-mark">Dronacharya TPC</div>
+      <div class="sidebar__brand-sub">Student portal</div>
+    </div>
+    <nav class="sidebar__nav">
+      <a class="sidebar__link is-active" href="student-dashboard.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"/></svg>
+        My profile
+      </a>
+      <a class="sidebar__link" href="#" id="link-drives">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="15" rx="1"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+        Eligible drives
+      </a>
+    </nav>
+    <div class="sidebar__foot">
+      <strong id="sf-name">—</strong>
+      <span id="sf-roll" class="mono"></span>
+      <button class="sidebar__logout" id="btn-logout">Sign out</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <h1>My profile</h1>
+      <div class="topbar__meta">Session <span>2026-27</span></div>
+    </div>
+
+    <div class="content">
+
+      <div id="no-session" class="panel" style="display:none;">
+        <div class="panel__body empty-state">
+          You're not signed in. <a href="index.html">Go to sign in</a>.
+        </div>
+      </div>
+
+      <div id="profile-view">
+
+        <div class="stat-row" id="stat-row"></div>
+
+        <div class="panel">
+          <div class="panel__head">
+            <div>
+              <h2>Academic record</h2>
+              <p>Kept in sync with the Students table used across the system.</p>
+            </div>
+          </div>
+          <div class="panel__body">
+            <table>
+              <tbody id="profile-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel" id="drives-panel">
+          <div class="panel__head">
+            <div>
+              <h2>Drives you're eligible for</h2>
+              <p>Matched automatically against CGPA, branch and backlog criteria for each drive.</p>
+            </div>
+          </div>
+          <div class="panel__body" style="padding:0;">
+            <table>
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Sector</th>
+                  <th>Drive date</th>
+                  <th>Package offered</th>
+                  <th>Your status</th>
+                </tr>
+              </thead>
+              <tbody id="drives-table"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/data.js"></script>
+<script>
+  const role = sessionStorage.getItem('spas_role');
+  const roll = sessionStorage.getItem('spas_roll');
+
+  if (role !== 'student' || !roll) {
+    document.getElementById('no-session').style.display = 'block';
+    document.getElementById('profile-view').style.display = 'none';
+  } else {
+    const student = DB.getStudentByRoll(roll);
+    document.getElementById('sf-name').textContent = student.name;
+    document.getElementById('sf-roll').textContent = student.roll_no;
+
+    const record = DB.recordFor(roll);
+    const eligible = DB.eligibleDrivesFor(roll);
+
+    document.getElementById('stat-row').innerHTML = `
+      <div class="stat">
+        <div class="stat__value is-accent">${student.cgpa.toFixed(1)}</div>
+        <div class="stat__label">Current CGPA</div>
+      </div>
+      <div class="stat">
+        <div class="stat__value">${student.backlogs}</div>
+        <div class="stat__label">Active backlogs</div>
+      </div>
+      <div class="stat">
+        <div class="stat__value">${eligible.length}</div>
+        <div class="stat__label">Drives you qualify for</div>
+      </div>
+      <div class="stat">
+        <div class="stat__value">${record ? record.status : 'Not applied'}</div>
+        <div class="stat__label">Placement status</div>
+      </div>
+    `;
+
+    document.getElementById('profile-table').innerHTML = `
+      <tr><td class="muted" style="width:180px;">Name</td><td>${student.name}</td></tr>
+      <tr><td class="muted">Roll number</td><td class="data-fig">${student.roll_no}</td></tr>
+      <tr><td class="muted">Branch</td><td>${student.branch}</td></tr>
+      <tr><td class="muted">CGPA</td><td class="data-fig">${student.cgpa.toFixed(2)}</td></tr>
+      <tr><td class="muted">Active backlogs</td><td class="data-fig">${student.backlogs}</td></tr>
+      <tr><td class="muted">Contact</td><td>${student.contact}</td></tr>
+    `;
+
+    const rows = eligible.map(drive => {
+      const company = DB.getCompanyById(drive.company_id);
+      const rec = DB.getPlacementRecords().find(r => r.roll_no === roll && r.drive_id === drive.drive_id);
+      let statusHtml = `<span class="status"><span class="status__dot is-pending"></span>Eligible — not applied</span>`;
+      if (rec) {
+        if (rec.status === 'Placed') statusHtml = `<span class="status"><span class="status__dot is-placed"></span>Placed · ${rec.ctc} LPA</span>`;
+        else statusHtml = `<span class="status"><span class="status__dot is-progress"></span>In process</span>`;
+      }
+      return `
+        <tr>
+          <td>${company.name}</td>
+          <td class="muted">${company.sector}</td>
+          <td class="data-fig">${drive.date}</td>
+          <td class="data-fig">${company.package_offered} LPA</td>
+          <td>${statusHtml}</td>
+        </tr>
+      `;
+    }).join('');
+
+    document.getElementById('drives-table').innerHTML = rows || `
+      <tr><td colspan="5" class="empty-state">No drives currently match your profile. Check back after the next round of company registrations.</td></tr>
+    `;
+  }
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+  });
+  document.getElementById('link-drives').addEventListener('click', (e) => {
+    e.preventDefault();
+    document.getElementById('drives-panel').scrollIntoView({ behavior: 'smooth' });
+  });
+</script>
+
+</body>
+</html>

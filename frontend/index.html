@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — Student Data & Placement Analysis System</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login-shell">
+
+  <div class="login-hero">
+    <div class="login-hero__grid"></div>
+    <div class="login-hero__top">
+      <div class="login-hero__mark">Dronacharya · Training &amp; Placement Cell</div>
+      <div class="login-hero__headline">One record for every student, every drive, every offer.</div>
+    </div>
+    <div class="login-hero__bottom">
+      <div class="login-hero__stats">
+        <div class="stat">
+          <div class="stat__value">8</div>
+          <div class="stat__label">Students on file</div>
+        </div>
+        <div class="stat">
+          <div class="stat__value">4</div>
+          <div class="stat__label">Companies this season</div>
+        </div>
+        <div class="stat">
+          <div class="stat__value">4</div>
+          <div class="stat__label">Offers rolled out</div>
+        </div>
+      </div>
+      <p class="login-hero__note">This preview runs on sample data stored in your browser, standing in for the MySQL database the finished system will use.</p>
+    </div>
+  </div>
+
+  <div class="login-form-side">
+    <form class="login-form" id="login-form">
+      <h2>Sign in</h2>
+      <p>Choose how you're accessing the system.</p>
+
+      <div class="field">
+        <label for="role-toggle">Role</label>
+        <div class="chip-toggle" id="role-toggle">
+          <button type="button" data-role="student" class="is-active">Student</button>
+          <button type="button" data-role="admin">Placement coordinator</button>
+        </div>
+      </div>
+
+      <div class="error-note" id="error-note">That roll number isn't on file. Try 2302300100153.</div>
+
+      <div class="field" id="field-identifier">
+        <label for="identifier">Roll number</label>
+        <input type="text" id="identifier" placeholder="e.g. 2302300100153" autocomplete="off">
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Any value works in this preview">
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+
+      <div class="login-form__foot">
+        Sample roll numbers: <span class="mono">2302300100153</span>, <span class="mono">2302300100201</span>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<script src="js/data.js"></script>
+<script>
+  let selectedRole = 'student';
+
+  document.getElementById('role-toggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    selectedRole = btn.dataset.role;
+    document.querySelectorAll('#role-toggle button').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+
+    const idField = document.getElementById('field-identifier');
+    const idLabel = idField.querySelector('label');
+    const idInput = idField.querySelector('input');
+    if (selectedRole === 'admin') {
+      idLabel.textContent = 'Coordinator ID';
+      idInput.placeholder = 'e.g. tpc-admin';
+    } else {
+      idLabel.textContent = 'Roll number';
+      idInput.placeholder = 'e.g. 2302300100153';
+    }
+    document.getElementById('error-note').classList.remove('is-visible');
+  });
+
+  document.getElementById('login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const identifier = document.getElementById('identifier').value.trim();
+    const errorNote = document.getElementById('error-note');
+
+    if (selectedRole === 'admin') {
+      sessionStorage.setItem('spas_role', 'admin');
+      sessionStorage.setItem('spas_user', identifier || 'Placement Coordinator');
+      window.location.href = 'admin-dashboard.html';
+      return;
+    }
+
+    const student = DB.getStudentByRoll(identifier);
+    if (!student) {
+      errorNote.classList.add('is-visible');
+      return;
+    }
+    sessionStorage.setItem('spas_role', 'student');
+    sessionStorage.setItem('spas_roll', student.roll_no);
+    window.location.href = 'student-dashboard.html';
+  });
+</script>
+
+</body>
+</html>
